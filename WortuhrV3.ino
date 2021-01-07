@@ -46,9 +46,9 @@ void setup() {
   pixels.setBrightness(helligkeit);
   pixels.clear();
   WiFiManager wifiManager;
-  //wifiManager.resetSettings();
+  wifiManager.resetSettings();
   wifiManager.autoConnect("Wortuhr Konfiguration");
-  WiFi.hostname("wortuhs");
+  WiFi.hostname("wortuhr");
   server.begin();
   timeClient.begin();
 
@@ -58,31 +58,30 @@ void setup() {
 
 void loop() {
 
-    timeClient.update();
-    //delay(500);
+timeClient.update();
+String stime = timeClient.getFormattedTime(); //speichert die Zeit im String im Format hh:mm:ss
+stunde = (stime.substring(0,2)).toInt();   //Schneidet die Stelle 0 bis 2 von sTime raus und typcastet nach int
+minute = (stime.substring(3,5)).toInt();    //Schneidet die Stelle 3 bis 5 von sTime raus und typcastet nach int
+sekunde = (stime.substring(6,8)).toInt();  //Schneidet die Stelle 6 bis 8 von sTime raus und typcastet nach int
+//int stunde2 = stunde + offset_stunde;
+zeigeZeit(stunde+offset_stunde,minute);                 //Diese Funktion schaltet die LEDs für die Anzeige   
 
 
- if(interruptCounter>0){
-      delay(700);   
-      offset_stunde++;
-      if(offset_stunde == 12)
-      {
-        offset_stunde =0;
-      }
-      //Serial.print("Uhrzeit: ");
-      //Serial.println(offset_stunde+stunde);
-      interruptCounter--;
-  }
+
+if(interruptCounter>0){
+     delay(700);   
+     offset_stunde++;
+     if(offset_stunde == 12)
+     {
+      offset_stunde =0;
+     }
     
-    String stime = timeClient.getFormattedTime(); //speichert die Zeit im String im Format hh:mm:ss
-    stunde = (stime.substring(0,2)).toInt();   //Schneidet die Stelle 0 bis 2 von sTime raus und typcastet nach int
-    minute = (stime.substring(3,5)).toInt();    //Schneidet die Stelle 3 bis 5 von sTime raus und typcastet nach int
-    sekunde = (stime.substring(6,8)).toInt();  //Schneidet die Stelle 6 bis 8 von sTime raus und typcastet nach int
-    int stunde2 = stunde + offset_stunde;
-    zeigeZeit(stunde2,minute);                 //Diese Funktion schaltet die LEDs für die Anzeige   
+     interruptCounter--;
+}   
+    
  
-  WiFiClient client = server.available();   // Listen for incoming clients
-  IPAddress ip = WiFi.localIP();
+WiFiClient client = server.available();   // Listen for incoming clients
+IPAddress ip = WiFi.localIP();
   
 if (client){                             // If a new client connects,
     Serial.println("New Client.");          // print a message out in the serial port
@@ -110,11 +109,21 @@ client.println();
         }
         if(header.startsWith("GET /api/set_rgb"))
         {
-        red = header.substring(19,22).toInt()-100;
-        green = header.substring(25,28).toInt()-100;
-        blue = header.substring(31,34).toInt()-100;
-        helligkeit = header.substring(38,41).toInt()-100;
-        Serial.println(helligkeit);
+        SearchStringFor("r", red);  
+        SearchStringFor("g", green);  
+        SearchStringFor("b", blue);
+        SearchStringFor("br", helligkeit);        //  at Benjamin: ist "br" oder "Br" richtig?
+        red = red -100;                           //For testing ...
+        blue = blue -100;
+        green = green - 100;
+        helligkeit = helligkeit -100;
+        
+        //red = header.substring(19,22).toInt()-100;
+        //green = header.substring(25,28).toInt()-100;
+        //blue = header.substring(31,34).toInt()-100;
+        //helligkeit = header.substring(38,41).toInt()-100;
+        //Serial.println(helligkeit);
+        //Serial.println("Test");
         client.println(rgbToJSON(red,green,blue,helligkeit));
         
 
